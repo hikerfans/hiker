@@ -1,0 +1,13 @@
+# 忽略所有 .log 文件
+*.log
+
+# 忽略目录（末尾加 /）
+node_modules/
+dist/
+build/
+
+# 忽略.idea
+.idea/
+
+# 忽略所有目录下的某个文件夹
+**/temp/
