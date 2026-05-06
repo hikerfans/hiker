@@ -85,7 +85,7 @@ const startActivity = getContext();
 let useStartActivity = true;
 
 function getArticleListFragment(activity) {
-	//let activity = getCurrentActivity();	
+	//let activity = getCurrentActivity();
 	try {
 		if (activity instanceof com.example.hikerview.ui.home.MainActivity) {
 			let MainActivity = activity.getClass();
@@ -143,15 +143,15 @@ function setNextThrottle(time) {
 }
 
 function newSimpleCallback({
-	beforeDismiss,
-	beforeShow,
-	onBackPressed,
-	onCreated,
-	onDismiss,
-	onDrag,
-	onKeyBoardStateChanged,
-	onShow
-}) {
+							   beforeDismiss,
+							   beforeShow,
+							   onBackPressed,
+							   onCreated,
+							   onDismiss,
+							   onDrag,
+							   onKeyBoardStateChanged,
+							   onShow
+						   }) {
 	return new XPopupCallback({
 		beforeDismiss(basePopupView) {
 			tryCallBack(beforeDismiss, [basePopupView], true);
@@ -437,13 +437,13 @@ Object.assign(FlexSection.prototype, {
 });
 
 function FlexMenuBottom({
-	sections,
-	title,
-	click,
-	longClick,
-	height,
-	extraInputBox
-}) {
+							sections,
+							title,
+							click,
+							longClick,
+							height,
+							extraInputBox
+						}) {
 
 	function newClickListener(value, index, index2) {
 		return {
@@ -456,9 +456,10 @@ function FlexMenuBottom({
 		};
 	}
 	height = getNumberValue(height, v => v <= 1 && v > 0, 0.75);
+	let sectionsq = Array.isArray(sections) ? sections.filter(v => v instanceof FlexSection) : [];
+	let mainTitle = getDefaultValue(title, "string", null);
 	let complexMenuPopup = new JavaAdapter(com.lxj.xpopup.core.BottomPopupView, {
-		sections: Array.isArray(sections) ? sections.filter(v => v instanceof FlexSection) : [],
-		mainTitle: getDefaultValue(title, "string", null),
+
 		getImplLayoutId() {
 			return isDarkMode() ? R.layout.pop_custom_center_recycler_view_dark :
 				R.layout.pop_custom_center_recycler_view;
@@ -474,18 +475,18 @@ function FlexMenuBottom({
 		onCreate() {
 			this.super$onCreate();
 			let titleView = this.findViewById(R.id.title);
-			titleView.setText(String(this.mainTitle));
-			
+			titleView.setText(String(mainTitle));
+
 			this.titleView = titleView;
 			// 配置RecyclerView
 			this.recyclerView = this.findViewById(R.id.recyclerView);
 			//Packages.androidx.core.view.ViewCompat.setBackground(this.recyclerView, Packages.androidx.core.content.ContextCompat.getDrawable(getActivityContext(), R.drawable.bg_round_all_rice));
 			this.recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 1));
-			
+
 			try {
-				this.adapter = newSectionAdapter(getActivityContext(), this.sections, newClickListener);
+				this.adapter = newSectionAdapter(getActivityContext(), sectionsq, newClickListener);
 				this.recyclerView.setAdapter(this.adapter);
-				
+
 				let linearLayout = this.recyclerView.getParent();
 				if (linearLayout && extraInputBox instanceof ResExtraInputBox) {
 					let inputItem = extraInputBox.create(linearLayout, [this]);
@@ -504,8 +505,8 @@ function FlexMenuBottom({
 			}
 		},
 		removeSection(index) {
-			if (index >= 0 && index < this.sections.length) {
-				this.sections.splice(index, 1);
+			if (index >= 0 && index < sectionsq.length) {
+				sectionsq.splice(index, 1);
 				if (this.adapter != null) {
 					// 计算RecyclerView位置 (每个section占2个位置)
 					let startPosition = index * 2;
@@ -515,8 +516,8 @@ function FlexMenuBottom({
 			}
 		},
 		updateSectionTitle(index, newTitle) {
-			if (index >= 0 && index < this.sections.length) {
-				this.sections.at(index).setSectionTitle(newTitle);
+			if (index >= 0 && index < sectionsq.length) {
+				sectionsq.at(index).setSectionTitle(newTitle);
 				if (this.adapter != null) {
 					// 标题位置 = index * 2
 					this.adapter.notifyItemChanged(index * 2);
@@ -524,8 +525,8 @@ function FlexMenuBottom({
 			}
 		},
 		updateButtonTitle(sectionIndex, buttonIndex, newTitle) {
-			if (sectionIndex >= 0 && sectionIndex < this.sections.length) {
-				this.sections.at(sectionIndex).updateButtonTitle(buttonIndex, newTitle);
+			if (sectionIndex >= 0 && sectionIndex < sectionsq.length) {
+				sectionsq.at(sectionIndex).updateButtonTitle(buttonIndex, newTitle);
 				if (this.adapter != null) {
 					// 按钮组位置 = sectionIndex * 2 + 1
 					this.adapter.notifyItemChanged(sectionIndex * 2 + 1);
@@ -533,8 +534,8 @@ function FlexMenuBottom({
 			}
 		},
 		removeButton(sectionIndex, buttonIndex) {
-			if (sectionIndex >= 0 && sectionIndex < sections.length) {
-				this.sections.at(sectionIndex).removeButton(buttonIndex);
+			if (sectionIndex >= 0 && sectionIndex < sectionsq.length) {
+				sectionsq.at(sectionIndex).removeButton(buttonIndex);
 				if (this.adapter != null) {
 					// 按钮组位置 = sectionIndex * 2 + 1
 					this.adapter.notifyItemChanged(sectionIndex * 2 + 1);
@@ -542,9 +543,9 @@ function FlexMenuBottom({
 			}
 		},
 		addSection(index, section) {
-			index = index === null ? this.sections.length : index;
-			if (index >= 0 && index <= this.sections.length && section instanceof FlexSection) {
-				this.sections.splice(index, 0, section);
+			index = index === null ? sectionsq.length : index;
+			if (index >= 0 && index <= sectionsq.length && section instanceof FlexSection) {
+				sectionsq.splice(index, 0, section);
 				if (this.adapter != null) {
 					let startPosition = index * 2;
 					this.adapter.notifyItemRangeInserted(startPosition, 2);
@@ -554,10 +555,10 @@ function FlexMenuBottom({
 
 		},
 		addButton(sectionIndex, buttonIndex, button) {
-			sectionIndex = sectionIndex === null ? this.sections.length - 1 : sectionIndex;
+			sectionIndex = sectionIndex === null ? sectionsq.length - 1 : sectionIndex;
 
-			if (sectionIndex >= 0 && sectionIndex < this.sections.length) {
-				let section = this.sections.at(sectionIndex);
+			if (sectionIndex >= 0 && sectionIndex < sectionsq.length) {
+				let section = sectionsq.at(sectionIndex);
 				buttonIndex = buttonIndex === null ? section.getButtons().length : buttonIndex;
 
 				section.getButtons().splice(buttonIndex, 0, new FlexSectionButton(button));
@@ -710,16 +711,18 @@ function newSectionAdapter(context, sections, newClickListener) {
 	});
 	return sectionAdapter;
 }
+
 function collectBottom({
-	list,
-	title,
-	click,
-	longClick,
-	tagClick,
-	height,
-	extraInputBox
-}) {
-	const XGridLayoutManager=com.example.hikerview.ui.view.XGridLayoutManager;
+						   list,
+						   title,
+						   click,
+						   longClick,
+						   tagClick,
+						   height,
+						   extraInputBox
+					   }) {
+	const XGridLayoutManager = com.example.hikerview.ui.view.XGridLayoutManager;
+
 	function newClickListener() {
 		return {
 			onLongClick(i) {
@@ -728,15 +731,15 @@ function collectBottom({
 			click(i) {
 				tryCallBack(getDefaultValue(click, "function", null), [list.at(i), i]);
 			},
-			tagClick(i){
+			tagClick(i) {
 				tryCallBack(getDefaultValue(click, "function", null), [list.at(i), i]);
 			}
 		};
 	}
 	list = Array.isArray(list) ? list.filter(v => typeof v === "object") : [],
-	height = getNumberValue(height, v => v <= 1 && v > 0, 0.75);
+		height = getNumberValue(height, v => v <= 1 && v > 0, 0.75);
+	let mainTitle = getDefaultValue(title, "string", null);
 	let complexMenuPopup = new JavaAdapter(com.lxj.xpopup.core.BottomPopupView, {
-		mainTitle: getDefaultValue(title, "string", null),
 		getImplLayoutId() {
 			return isDarkMode() ? R.layout.pop_custom_center_recycler_view_dark :
 				R.layout.pop_custom_center_recycler_view;
@@ -752,9 +755,9 @@ function collectBottom({
 		onCreate() {
 			this.super$onCreate();
 			let titleView = this.findViewById(R.id.title);
-			
-			titleView.setText(String(this.mainTitle));
-			
+
+			titleView.setText(String(mainTitle));
+
 			this.titleView = titleView;
 			// 配置RecyclerView
 			this.recyclerView = this.findViewById(R.id.recyclerView);
@@ -788,6 +791,7 @@ function collectBottom({
 	showOnUI(pop);
 	return pop;
 }
+
 function newCollecListAdapter(context, list, clickListener, _useGrid) {
 	const CollectionListAdapter = com.example.hikerview.ui.setting.CollectionListAdapter;
 	const picType = 1,
@@ -798,7 +802,7 @@ function newCollecListAdapter(context, list, clickListener, _useGrid) {
 	const GlideUtil = com.example.hikerview.utils.GlideUtil;
 	const options = new com.bumptech.glide.request.RequestOptions();
 	//let RuleHolderClass=CollectionListAdapter.RuleHolder.__javaObject__;
-	function invokeGet(obj, key){
+	function invokeGet(obj, key) {
 		return obj.getClass().getMethod(key).invoke(obj);
 	}
 	return new JavaAdapter(RecyclerView.Adapter, {
@@ -816,7 +820,7 @@ function newCollecListAdapter(context, list, clickListener, _useGrid) {
 					inflate = LayoutInflater.from(context).inflate(2131558584, viewGroup, false);
 					return new CollectionListAdapter.GridHolder(inflate);
 				default:
-			 
+
 					inflate = LayoutInflater.from(context).inflate(2131558584, viewGroup, false);
 					return new CollectionListAdapter.RuleHolder(inflate);
 			}
@@ -840,65 +844,65 @@ function newCollecListAdapter(context, list, clickListener, _useGrid) {
 		onBindViewHolder(viewHolder, position) {
 			let viewCollection = list.at(position);
 			if (typeof viewCollection !== "object") viewCollection = {};
-			
-			if (viewHolder instanceof CollectionListAdapter.RuleHolder) {
-				try{
-				let ruleHolder = viewHolder;
-				invokeGet(ruleHolder, "getTitle").setText(viewCollection.title || null);
 
-				let picUrl = String(viewCollection.pic_url);
-				
-				if (picUrl && picUrl.startsWith("http")) {
-					invokeGet(ruleHolder,"getItem_result_img_bg").setVisibility(0);
-					Glide.with(context).load(GlideUtil.getGlideUrl(viewCollection.url ||picUrl|| null, picUrl)).apply(options).into(invokeGet(ruleHolder,"getItem_reult_img"));
-					invokeGet(ruleHolder,"getItem_url").setText(viewCollection.desc || null);
-				  
-				} else {
-					invokeGet(ruleHolder,"getItem_result_img_bg").setVisibility(8);
-					
-				}
-			
-				if (viewCollection.tag) {
-					let itemVideo=invokeGet(ruleHolder,"getItem_video");
-					itemVideo.setText(String(viewCollection.tag));
-					itemVideo.setBackgroundColor(context.getResources().getColor(2131100420));
-					itemVideo.setTextColor(context.getResources().getColor(2131100488));
-					invokeGet(ruleHolder,"getItem_video_card").setVisibility(0);
-				} else {
-					invokeGet(ruleHolder,"getItem_video_card").setVisibility(8);
-				}
-			 
-				if (viewCollection.info) {
-					let his=invokeGet(ruleHolder,"getItem_history");
-					his.setVisibility(0);
-					his.setText(String(viewCollection.info));
-				} else {
-					invokeGet(ruleHolder,"getItem_history").setVisibility(8);
-				}
-		   
-				invokeGet(ruleHolder,"getItem_video_card").setOnClickListener((v) => {
-					clickListener.tagClick(position);
-				});
-				invokeGet(ruleHolder,"getItem_ad_bg").setOnClickListener((v) => {
-					clickListener.click(position);
-				});
-				invokeGet(ruleHolder,"getItem_ad_bg").setOnLongClickListener(new View.OnLongClickListener({
-					onLongClick(v) {
-						clickListener.onLongClick(position);
-						return true;
-					},
-					onLongClickUseDefaultHapticFeedback(v) {
-						return false;
+			if (viewHolder instanceof CollectionListAdapter.RuleHolder) {
+				try {
+					let ruleHolder = viewHolder;
+					invokeGet(ruleHolder, "getTitle").setText(viewCollection.title || null);
+
+					let picUrl = String(viewCollection.pic_url);
+
+					if (picUrl && picUrl.startsWith("http")) {
+						invokeGet(ruleHolder, "getItem_result_img_bg").setVisibility(0);
+						Glide.with(context).load(GlideUtil.getGlideUrl(viewCollection.url || picUrl || null, picUrl)).apply(options).into(invokeGet(ruleHolder, "getItem_reult_img"));
+						invokeGet(ruleHolder, "getItem_url").setText(viewCollection.desc || null);
+
+					} else {
+						invokeGet(ruleHolder, "getItem_result_img_bg").setVisibility(8);
+
 					}
-				}));
-				}catch(e){
-				log(e.toString()+e.stack)
+
+					if (viewCollection.tag) {
+						let itemVideo = invokeGet(ruleHolder, "getItem_video");
+						itemVideo.setText(String(viewCollection.tag));
+						itemVideo.setBackgroundColor(context.getResources().getColor(2131100420));
+						itemVideo.setTextColor(context.getResources().getColor(2131100488));
+						invokeGet(ruleHolder, "getItem_video_card").setVisibility(0);
+					} else {
+						invokeGet(ruleHolder, "getItem_video_card").setVisibility(8);
+					}
+
+					if (viewCollection.info) {
+						let his = invokeGet(ruleHolder, "getItem_history");
+						his.setVisibility(0);
+						his.setText(String(viewCollection.info));
+					} else {
+						invokeGet(ruleHolder, "getItem_history").setVisibility(8);
+					}
+
+					invokeGet(ruleHolder, "getItem_video_card").setOnClickListener((v) => {
+						clickListener.tagClick(position);
+					});
+					invokeGet(ruleHolder, "getItem_ad_bg").setOnClickListener((v) => {
+						clickListener.click(position);
+					});
+					invokeGet(ruleHolder, "getItem_ad_bg").setOnLongClickListener(new View.OnLongClickListener({
+						onLongClick(v) {
+							clickListener.onLongClick(position);
+							return true;
+						},
+						onLongClickUseDefaultHapticFeedback(v) {
+							return false;
+						}
+					}));
+				} catch (e) {
+					log(e.toString() + e.stack)
 				}
-			}else{
-				log("错误"+(viewHolder instanceof CollectionListAdapter.RuleHolder));
+			} else {
+				log("错误" + (viewHolder instanceof CollectionListAdapter.RuleHolder));
 			}
 		},
-		getDividerItem(){
+		getDividerItem() {
 			return new CollectionListAdapter.MyDividerItem();
 		},
 		getItemId(position) {
@@ -911,18 +915,18 @@ function newCollecListAdapter(context, list, clickListener, _useGrid) {
 function test() {
 	collectBottom({
 		height: 0.9,
-		list:[{
+		list: [{
 			title: "test",
-			pic_url:"https://vd3.bdstatic.com/mda-raqi81i35fcwqknr/1737809543/mda-raqi81i35fcwqknr.jpg?for=bg",
+			pic_url: "https://vd3.bdstatic.com/mda-raqi81i35fcwqknr/1737809543/mda-raqi81i35fcwqknr.jpg?for=bg",
 			tag: "okk",
 			//desc: "hiker",
-			info:"a-b"
-		},{
+			info: "a-b"
+		}, {
 			title: "test",
-			pic_url:"https://vd3.bdstatic.com/mda-raqi81i35fcwqknr/1737809543/mda-raqi81i35fcwqknr.jpg?for=bg",
+			pic_url: "https://vd3.bdstatic.com/mda-raqi81i35fcwqknr/1737809543/mda-raqi81i35fcwqknr.jpg?for=bg",
 			tag: "okk",
 			desc: "hiker",
-			info:"a-b"
+			info: "a-b"
 		}]
 	})
 }
@@ -933,8 +937,9 @@ function updateRecordsBottom(records) {
 	const UpdateRecordsAdapter = com.example.hikerview.ui.setting.updaterecords.UpdateRecordsAdapter;
 	const RecordDetail = com.example.hikerview.ui.setting.updaterecords.RecordDetail;
 
+	let rules = [];
 	let myRecordDetail = new JavaAdapter(com.lxj.xpopup.core.BottomPopupView, {
-		rules: [],
+
 		getImplLayoutId() {
 			return R.layout.activit_ad_list;
 		},
@@ -956,7 +961,7 @@ function updateRecordsBottom(records) {
 			layoutParams.topMargin = statusBarHeight;
 			findView2.setLayoutParams(layoutParams);
 
-			this.adapter = new UpdateRecordsAdapter(getActivityContext(), this.rules);
+			this.adapter = new UpdateRecordsAdapter(getActivityContext(), rules);
 			this.recyclerView.setLayoutManager(new GridLayoutManager(getActivityContext(), 1));
 			this.recyclerView.setAdapter(this.adapter);
 			try {
@@ -964,12 +969,12 @@ function updateRecordsBottom(records) {
 					let recordDetail = new RecordDetail();
 					recordDetail.setType(1);
 					recordDetail.setDetail(String(it.title || ""));
-					this.rules.push(recordDetail);
+					rules.push(recordDetail);
 					for (let item of (it.records || [])) {
 						let recordDetail2 = new RecordDetail();
 						recordDetail2.setType(2);
 						recordDetail2.setDetail(String(item || ""));
-						this.rules.push(recordDetail2);
+						rules.push(recordDetail2);
 					}
 				}
 			} catch (e) {
@@ -983,6 +988,16 @@ function updateRecordsBottom(records) {
 	let pop = new builderXPopup().asCustom(myRecordDetail);
 	showOnUI(pop);
 	return pop;
+}
+
+function getRulesRecyclerView() {
+	if (currentArticleListFragment == null) return null;
+	//return getActivityContext().findViewById(R.id.frag_article_list_recycler_view);
+	let ArticleListFragmentS = currentArticleListFragment.getClass().getSuperclass();
+	let field = ArticleListFragmentS.getDeclaredField("convertView");
+	field.setAccessible(true);
+	let convertView = field.get(currentArticleListFragment);
+	return convertView.findViewById(R.id.frag_article_list_recycler_view);
 }
 
 function findRecyclerView(viewGroup) {
@@ -1001,17 +1016,9 @@ function findRecyclerView(viewGroup) {
 		}
 	}
 }
-
-
-function selectAttachList(id, {
-	click,
-	options,
-}) {
+function findItemById(id){
 	if (typeof id !== "string" || !id) return null;
-	options = getStringArray(options, []);
-	let context = getActivityContext();
-	let recyclerView = findRecyclerView(context.findViewById(android.R.id.content));
-	//log(recyclerView===null);
+	let recyclerView = getRulesRecyclerView();
 	if (recyclerView == null) return null;
 	let list = recyclerView.getAdapter().getList();
 	let i = 0;
@@ -1025,16 +1032,130 @@ function selectAttachList(id, {
 	}
 	if (ii < 0) return null;
 	let mg = recyclerView.getLayoutManager();
+	return mg.getChildAt(ii);
+}
+
+function selectAttachList(id, {
+	click,
+	options,
+}) {
+	let view=findItemById(id);
+	options = getStringArray(options, []);
+	if(view==null) return null;
 
 	let pop = builderXPopup(getContext())
-		.atView(mg.getChildAt(ii))
+		.atView()
 		.asAttachList(options, null, (position, text) => {
 			tryCallBack(getDefaultValue(click, "function", null), [text, position]);
 		});
 	showOnUI(pop);
 	return pop;
 }
+/**
+ * 显示 Tooltip
+ * @param {String|Number} anchorViewId - 目标 View 的 ID
+ * @param {String} text - 提示文字
+ * @param {Object} options - 可选配置项
+ * @param {Boolean} options.isLongDuration - 是否长时间显示 (true=15s, false=10s)
+ * @param {Number} options.styleId - 样式资源ID
+ * @param {String} options.gravity - 位置: "top", "bottom", "left", "right", "center"
+ * @param {String} options.animation - 动画: "default", "slow"
+ * @param {String} options.closePolicy - 关闭策略
+ * @param {Number} options.offsetX - X轴偏移量
+ * @param {Number} options.offsetY - Y轴偏移量
+ */
+function showTooltip(anchorViewId, text, options) {
+	// 处理 options 参数，确保不为空
+	var opts = options || {};
 
+	// 设置默认值
+	var isLongDuration = opts.isLongDuration !== undefined ? opts.isLongDuration : false;
+	var styleId = opts.styleId !== undefined ? opts.styleId : null;
+	var gravity = opts.gravity !== undefined ? opts.gravity : "bottom";
+	var animation = opts.animation !== undefined ? opts.animation : "default";
+	var closePolicy = opts.closePolicy !== undefined ? opts.closePolicy : "anywhere_consume";
+	var offsetX = opts.offsetX !== undefined ? opts.offsetX : 0;
+	var offsetY = opts.offsetY !== undefined ? opts.offsetY : 0;
+
+	runOnUI(function() {
+		try {
+			// 1. 获取 View
+			let anchorView = findItemById(anchorViewId);
+			if (anchorView == null) {
+				console.warn("未找到ID为 " + anchorViewId + " 的视图");
+				return;
+			}
+
+			// 2. 导入类
+			var Tooltip = Packages.it.sephiroth.android.library.xtooltip.Tooltip;
+			var ClosePolicyPkg = Packages.it.sephiroth.android.library.xtooltip.ClosePolicy;
+			var Animation = Tooltip.Animation;
+			var Gravity = Tooltip.Gravity;
+
+			// ---------------------------------------------------------
+			// 3. 处理参数逻辑
+			// ---------------------------------------------------------
+
+			// 3.1 动画处理 (Animation)
+			var animInstance;
+			if (animation && animation.toLowerCase() === "slow") {
+				animInstance = Animation.Companion.getSLOW();
+			} else {
+				animInstance = Animation.Companion.getDEFAULT();
+			}
+
+			// 3.2 关闭策略处理 (ClosePolicy)
+
+			var policyInstance;
+			var cp = closePolicy.toLowerCase();
+
+			if (cp.includes("inside") && cp.includes("no_consume")) {
+				policyInstance = ClosePolicyPkg.Companion.getTOUCH_INSIDE_NO_CONSUME();
+			} else if (cp.includes("inside")) {
+				policyInstance = ClosePolicyPkg.Companion.getTOUCH_INSIDE_CONSUME(); // 默认 consume
+			} else if (cp.includes("outside") && cp.includes("no_consume")) {
+				policyInstance = ClosePolicyPkg.Companion.getTOUCH_OUTSIDE_NO_CONSUME();
+			} else if (cp.includes("outside")) {
+				policyInstance = ClosePolicyPkg.Companion.getTOUCH_OUTSIDE_CONSUME();
+			} else if (cp.includes("none")) {
+				policyInstance = ClosePolicyPkg.Companion.getTOUCH_NONE();
+			} else if (cp.includes("anywhere") && cp.includes("no_consume")) {
+				policyInstance = ClosePolicyPkg.Companion.getTOUCH_ANYWHERE_NO_CONSUME();
+			} else {
+				// 默认策略: TOUCH_ANYWHERE_CONSUME
+				policyInstance = ClosePolicyPkg.Companion.getTOUCH_ANYWHERE_CONSUME();
+			}
+
+			// 3.3 位置 (Gravity)
+			var gravityEnum;
+			switch (gravity.toLowerCase()) {
+				case "top":    gravityEnum = Gravity.TOP; break;
+				case "left":   gravityEnum = Gravity.LEFT; break;
+				case "right":  gravityEnum = Gravity.RIGHT; break;
+				case "center": gravityEnum = Gravity.CENTER; break;
+				case "bottom":
+				default:       gravityEnum = Gravity.BOTTOM; break;
+			}
+
+			var duration = isLongDuration ? 15000 : 10000;
+			var finalStyleId = styleId || R.style.MyTooltip;
+
+			// 4. 构建并显示
+			new Tooltip.Builder(getActivityContext())
+				.styleId(finalStyleId)
+				.floatingAnimation(animInstance) // 应用动画参数
+				.closePolicy(policyInstance)     // 应用关闭策略参数
+				.anchor(anchorView, offsetX, offsetY, false)
+				.text(text)
+				.showDuration(duration)
+				.create()
+				.show(anchorView, gravityEnum, true);
+
+		} catch (e) {
+			console.error("Tooltip显示失败: " + e);
+		}
+	});
+}
 function loading(title) {
 	let pop = builderXPopup()
 		.asLoading(getDefaultValue(title, "string", null), 0);
@@ -1043,13 +1164,13 @@ function loading(title) {
 }
 
 function selectCenterMark({
-	click,
-	title,
-	options,
-	icons,
-	noAutoDismiss,
-	position
-}) {
+							  click,
+							  title,
+							  options,
+							  icons,
+							  noAutoDismiss,
+							  position
+						  }) {
 	options = getStringArray(options, []);
 	icons = getNumberArray(icons, null);
 	let pop = builderXPopup()
@@ -1062,13 +1183,13 @@ function selectCenterMark({
 }
 
 function selectBottomMark({
-	click,
-	title,
-	options,
-	icons,
-	noAutoDismiss,
-	position
-}) {
+							  click,
+							  title,
+							  options,
+							  icons,
+							  noAutoDismiss,
+							  position
+						  }) {
 	options = getStringArray(options, []);
 	icons = getNumberArray(icons, null);
 	let pop = builderXPopup()
@@ -1082,13 +1203,13 @@ function selectBottomMark({
 }
 
 function selectCenter({
-	click,
-	longClick,
-	title,
-	options,
-	columns,
-	position
-}) {
+						  click,
+						  longClick,
+						  title,
+						  options,
+						  columns,
+						  position
+					  }) {
 	let clickListener = new CustomCenterRecyclerViewPopup.ClickListener({
 		onLongClick(value, index) {
 			tryCallBack(getDefaultValue(longClick, "function", null), [value, index]);
@@ -1111,14 +1232,14 @@ function selectCenter({
 }
 
 function selectBottom({
-	click,
-	longClick,
-	title,
-	options,
-	columns,
-	height,
-	noAutoDismiss,
-}) {
+						  click,
+						  longClick,
+						  title,
+						  options,
+						  columns,
+						  height,
+						  noAutoDismiss,
+					  }) {
 	let clickListener = new CustomRecyclerViewPopup.ClickListener({
 		onLongClick(value, index) {
 			tryCallBack(getDefaultValue(longClick, "function", null), [value, index]);
@@ -1166,13 +1287,13 @@ function IconExtraMenu(click) {
 }
 
 function selectCenterIcon({
-	click,
-	title,
-	iconList,
-	columns,
-	position,
-	extraMenu
-}) {
+							  click,
+							  title,
+							  iconList,
+							  columns,
+							  position,
+							  extraMenu
+						  }) {
 	let clickListener = new BookmarkFolderPopup.ClickListener({
 		onLongClick(value, index) {},
 		click(value, index) {
@@ -1212,16 +1333,16 @@ function selectCenterIcon({
 }
 
 function inputTwoRow({
-	title,
-	titleHint,
-	urlHint,
-	titleDefault,
-	urlDefault,
-	confirm,
-	cancel,
-	hideCancel,
-	noAutoSoft
-}) {
+						 title,
+						 titleHint,
+						 urlHint,
+						 titleDefault,
+						 urlDefault,
+						 confirm,
+						 cancel,
+						 hideCancel,
+						 noAutoSoft
+					 }) {
 	let okListener = new InputPopup.OkListener({
 		ok(text1, text2) {
 			tryCallBack(getDefaultValue(confirm, "function", null), [text1, text2]);
@@ -1266,16 +1387,16 @@ function inputTwoRow({
 }
 
 function inputAutoRow({
-	title,
-	hint,
-	confirm,
-	cancel,
-	okTitle,
-	cancelTitle,
-	defaultValue,
-	hideCancel,
-	noAutoSoft
-}) {
+						  title,
+						  hint,
+						  confirm,
+						  cancel,
+						  okTitle,
+						  cancelTitle,
+						  defaultValue,
+						  hideCancel,
+						  noAutoSoft
+					  }) {
 	let okListener = new ConfirmPopup.OkListener({
 		ok(text) {
 			tryCallBack(getDefaultValue(confirm, "function", null), [text]);
@@ -1319,17 +1440,17 @@ function inputAutoRow({
 }
 
 function inputConfirm({
-	title,
-	content,
-	defaultValue,
-	hint,
-	confirm,
-	cancel,
-	textarea,
-	maxTextarea,
-	hideCancel,
-	noAutoSoft
-}) {
+						  title,
+						  content,
+						  defaultValue,
+						  hint,
+						  confirm,
+						  cancel,
+						  textarea,
+						  maxTextarea,
+						  hideCancel,
+						  noAutoSoft
+					  }) {
 	let pop = builderXPopup()
 		.autoOpenSoftInput(!noAutoSoft)
 		.autoFocusEditText(!noAutoSoft);
@@ -1357,14 +1478,14 @@ function inputConfirm({
 }
 
 function confirm({
-	title,
-	content,
-	confirm,
-	cancel,
-	okTitle,
-	cancelTitle,
-	hideCancel
-}) {
+					 title,
+					 content,
+					 confirm,
+					 cancel,
+					 okTitle,
+					 cancelTitle,
+					 hideCancel
+				 }) {
 	let pop = builderXPopup()
 		.asConfirm(getDefaultValue(title, "string", null), getDefaultValue(content, "string", ""), getDefaultValue(cancelTitle, "string", "取消"), getDefaultValue(okTitle, "string", "确认"), () => {
 			tryCallBack(getDefaultValue(confirm, "function", null));
@@ -1384,10 +1505,10 @@ function SettingItem(...arr) {
 }
 
 function selectBottomSettingMenu({
-	click,
-	options,
-	onDismiss
-}) {
+									 click,
+									 options,
+									 onDismiss
+								 }) {
 	let onItemClickListener = new SettingMenuPopup.OnItemClickListener({
 		onClick(str, officeItem, consumer) {
 			tryCallBack(getDefaultValue(click, "function", null), [str, officeItem, () => consumer.accept(officeItem)]);
@@ -1430,23 +1551,24 @@ function newSimpleItemTouchHelperCallback(adapter, options) {
 			return true;
 		},
 		onSwiped(viewHolder, direction) {
-			
+
 		}
 	});
 }
 
-function setItemTouchHelper(recyclerView, adapter, options){
-	let itemTouchHelper=new ItemTouchHelper(newSimpleItemTouchHelperCallback(adapter, options));
+function setItemTouchHelper(recyclerView, adapter, options) {
+	let itemTouchHelper = new ItemTouchHelper(newSimpleItemTouchHelperCallback(adapter, options));
 	itemTouchHelper.attachToRecyclerView(recyclerView);
 }
+
 function ResExtraInputBox({
-	hint,
-	click,
-	title,
-	onChange,
-	defaultValue,
-	titleVisible
-}) {
+							  hint,
+							  click,
+							  title,
+							  onChange,
+							  defaultValue,
+							  titleVisible
+						  }) {
 	let search;
 	let edit;
 	this.create = function(parentView, args) {
@@ -1521,22 +1643,22 @@ function ResExtraInputBox({
 }
 
 function selectBottomResIcon({
-	click,
-	longClick,
-	menuClick,
-	title,
-	iconList,
-	columns,
-	height,
-	noAutoDismiss,
-	extraInputBox,
-	position,
-	toPosition,
-	beforeShow,
-	dragFlags,
-	allowDrag,
-	drag
-}) {
+								 click,
+								 longClick,
+								 menuClick,
+								 title,
+								 iconList,
+								 columns,
+								 height,
+								 noAutoDismiss,
+								 extraInputBox,
+								 position,
+								 toPosition,
+								 beforeShow,
+								 dragFlags,
+								 allowDrag,
+								 drag
+							 }) {
 	let clickListener = new CustomCenterRecyclerViewPopup.ClickListener({
 		onLongClick(value, index) {},
 		click(value, index) {}
@@ -1559,8 +1681,8 @@ function selectBottomResIcon({
 		if (tv) tv.setText(String(title));
 	};
 	let dragOptions = {
-		dragFlags:typeof dragFlags=="undefined"?(ItemTouchHelper.UP | ItemTouchHelper.DOWN | ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT):dragFlags,
-		allowDrag:!!allowDrag,
+		dragFlags: typeof dragFlags == "undefined" ? (ItemTouchHelper.UP | ItemTouchHelper.DOWN | ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) : dragFlags,
+		allowDrag: !!allowDrag,
 	}
 	let custom = new CustomBottomRecyclerViewPopup(getActivityContext())
 		.withTitle(getDefaultValue(title, "string", "请选择"))
@@ -1620,8 +1742,9 @@ function selectBottomResIcon({
 			}
 		},
 		onItemMove(fromPosition, toPosition) {
-			// 交换位置
-			java.util.Collections.swap(booksList, fromPosition, toPosition);
+			if (fromPosition == toPosition) return; // 位置相同无需操作
+			let item = booksList.remove(Number(fromPosition));
+			booksList.add(toPosition, item);
 			this.notifyItemMoved(fromPosition, toPosition);
 			tryCallBack(getDefaultValue(drag, "function", null), [Number(fromPosition), Number(toPosition), resOptionsManage]);
 		}
@@ -1650,8 +1773,8 @@ function selectBottomResIcon({
 			iconAdapter.notifyItemRemoved(pos);
 		},
 		changeColumns: custom.changeSpanCount.bind(custom),
-		setAllowDrag(allowDrag){
-			dragOptions.allowDrag=!!allowDrag;
+		setAllowDrag(allowDrag) {
+			dragOptions.allowDrag = !!allowDrag;
 		},
 	}
 	if (typeof menuClick === "function") {
@@ -1674,19 +1797,19 @@ function selectBottomResIcon({
 }
 
 function selectBottomRes({
-	click,
-	longClick,
-	menuClick,
-	title,
-	options,
-	columns,
-	height,
-	noAutoDismiss,
-	extraInputBox,
-	toPosition,
-	beforeShow,
-	onDismiss
-}) {
+							 click,
+							 longClick,
+							 menuClick,
+							 title,
+							 options,
+							 columns,
+							 height,
+							 noAutoDismiss,
+							 extraInputBox,
+							 toPosition,
+							 beforeShow,
+							 onDismiss
+						 }) {
 	let clickListener = new CustomCenterRecyclerViewPopup.ClickListener({
 		onLongClick(value, index) {
 			tryCallBack(getDefaultValue(longClick, "function", null), [value, index, resOptionsManage]);
@@ -1769,11 +1892,11 @@ function selectBottomRes({
 }
 
 function infoBottom({
-	title,
-	options,
-	click,
-	longClick
-}) {
+						title,
+						options,
+						click,
+						longClick
+					}) {
 	let clickListener = new com.example.hikerview.ui.setting.file.FileDetailAdapter.OnClickListener({
 		click(value) {
 			tryCallBack(getDefaultValue(click, "function", null), [value]);
@@ -1784,10 +1907,10 @@ function infoBottom({
 	});
 
 	let custom = new FileDetailPopup(
-			getActivityContext(),
-			getDefaultValue(title, "string", null),
-			getStringArray(options, [])
-		)
+		getActivityContext(),
+		getDefaultValue(title, "string", null),
+		getStringArray(options, [])
+	)
 		.withClickListener(clickListener);
 	let pop = builderXPopup()
 		.moveUpToKeyboard(false)
@@ -1842,13 +1965,13 @@ function selectCenterColor(colors, callBack) {
 }
 
 function chefSnackbarMake({
-	content,
-	duration,
-	confirm,
-	cancel,
-	okTitle,
-	cancelTitle
-}) {
+							  content,
+							  duration,
+							  confirm,
+							  cancel,
+							  okTitle,
+							  cancelTitle
+						  }) {
 	let decorView = getContext().getWindow().getDecorView();
 	ChefSnackbar.Companion.make(decorView)
 		.setText(getDefaultValue(content, "string", ""))
@@ -1904,75 +2027,75 @@ function getClipTopData() {
 }
 
 function confirmSync({
-	title,
-	content,
-	okTitle,
-	cancelTitle,
-	hideCancel,
-	noDismissOnBack,
-	noDismissOnBlank
-}) {
+						 title,
+						 content,
+						 okTitle,
+						 cancelTitle,
+						 hideCancel,
+						 noDismissOnBack,
+						 noDismissOnBlank
+					 }) {
 	let countDownLatch = new java.util.concurrent.CountDownLatch(1);
 	let result = false;
 	showOnUI(
 		builderXPopup()
-		.dismissOnTouchOutside(!noDismissOnBlank)
-		.dismissOnBackPressed(!noDismissOnBack)
-		.setPopupCallback(newSimpleCallback({
-			onDismiss(basePopupView) {
-				countDownLatch.countDown();
-			}
-		}))
-		.asConfirm(getDefaultValue(title, "string", null), getDefaultValue(content, "string", ""), getDefaultValue(cancelTitle, "string", "取消"), getDefaultValue(okTitle, "string", "确认"), () => {
-			result = true;
-		}, () => {
-			result = false;
-		}, !!hideCancel)
+			.dismissOnTouchOutside(!noDismissOnBlank)
+			.dismissOnBackPressed(!noDismissOnBack)
+			.setPopupCallback(newSimpleCallback({
+				onDismiss(basePopupView) {
+					countDownLatch.countDown();
+				}
+			}))
+			.asConfirm(getDefaultValue(title, "string", null), getDefaultValue(content, "string", ""), getDefaultValue(cancelTitle, "string", "取消"), getDefaultValue(okTitle, "string", "确认"), () => {
+				result = true;
+			}, () => {
+				result = false;
+			}, !!hideCancel)
 	);
 	countDownLatch.await();
 	return result;
 }
 
 function inputConfirmSync({
-	title,
-	content,
-	defaultValue,
-	hint,
-	textarea,
-	maxTextarea,
-	hideCancel,
-	noAutoSoft,
-	noDismissOnBack,
-	noDismissOnBlank
-}) {
+							  title,
+							  content,
+							  defaultValue,
+							  hint,
+							  textarea,
+							  maxTextarea,
+							  hideCancel,
+							  noAutoSoft,
+							  noDismissOnBack,
+							  noDismissOnBlank
+						  }) {
 	let countDownLatch = new java.util.concurrent.CountDownLatch(1);
 	let result = "";
 	showOnUI(
 		builderXPopup()
-		.autoOpenSoftInput(!noAutoSoft)
-		.autoFocusEditText(!noAutoSoft)
-		.dismissOnTouchOutside(!noDismissOnBlank)
-		.dismissOnBackPressed(!noDismissOnBack)
-		.setPopupCallback(newSimpleCallback({
-			onCreated(basePopupView) {
-				if (hideCancel) {
-					let cancelTextView = basePopupView.findViewById(R.id.tv_cancel);
-					if (cancelTextView) {
-						cancelTextView.setVisibility(8);
+			.autoOpenSoftInput(!noAutoSoft)
+			.autoFocusEditText(!noAutoSoft)
+			.dismissOnTouchOutside(!noDismissOnBlank)
+			.dismissOnBackPressed(!noDismissOnBack)
+			.setPopupCallback(newSimpleCallback({
+				onCreated(basePopupView) {
+					if (hideCancel) {
+						let cancelTextView = basePopupView.findViewById(R.id.tv_cancel);
+						if (cancelTextView) {
+							cancelTextView.setVisibility(8);
+						}
+						let dividerView = basePopupView.findViewById(R.id.xpopup_divider2);
+						if (dividerView) {
+							dividerView.setVisibility(8);
+						}
 					}
-					let dividerView = basePopupView.findViewById(R.id.xpopup_divider2);
-					if (dividerView) {
-						dividerView.setVisibility(8);
-					}
+				},
+				onDismiss(basePopupView) {
+					countDownLatch.countDown();
 				}
-			},
-			onDismiss(basePopupView) {
-				countDownLatch.countDown();
-			}
-		}))
-		.asInputConfirm(getDefaultValue(title, "string", null), getDefaultValue(content, "string", null), getDefaultValue(defaultValue, "string", null), getDefaultValue(hint, "string", null), (text) => {
-			result = text;
-		}, null, maxTextarea ? R.layout.xpopup_confirm_input_max : (textarea ? R.layout.xpopup_confirm_input : 0))
+			}))
+			.asInputConfirm(getDefaultValue(title, "string", null), getDefaultValue(content, "string", null), getDefaultValue(defaultValue, "string", null), getDefaultValue(hint, "string", null), (text) => {
+				result = text;
+			}, null, maxTextarea ? R.layout.xpopup_confirm_input_max : (textarea ? R.layout.xpopup_confirm_input : 0))
 	);
 	countDownLatch.await();
 	return result;
@@ -1990,13 +2113,13 @@ function dialogShowOnUI(dialogBuilder, callBack) {
 }
 
 function setAlertDialogButton({
-	rightTitle,
-	rightClick,
-	leftTitle,
-	leftClick,
-	centerTitle,
-	centerClick
-}, dialogBuilder, getParam) {
+								  rightTitle,
+								  rightClick,
+								  leftTitle,
+								  leftClick,
+								  centerTitle,
+								  centerClick
+							  }, dialogBuilder, getParam) {
 	if (rightTitle || rightClick) {
 		rightClick = getDefaultValue(rightClick, "function", null);
 		dialogBuilder.setPositiveButton(getDefaultValue(rightTitle, "string", "确认"), (dialog) => {
@@ -2018,13 +2141,13 @@ function setAlertDialogButton({
 }
 
 function setAlertDialogButtonTitle({
-	rightTitle,
-	rightClick,
-	leftTitle,
-	leftClick,
-	centerTitle,
-	centerClick
-}, dialogBuilder) {
+									   rightTitle,
+									   rightClick,
+									   leftTitle,
+									   leftClick,
+									   centerTitle,
+									   centerClick
+								   }, dialogBuilder) {
 	if (rightTitle || rightClick) {
 		dialogBuilder.setPositiveButton(getDefaultValue(rightTitle, "string", "确认"), null);
 	}
@@ -2037,13 +2160,13 @@ function setAlertDialogButtonTitle({
 }
 
 function setAlertDialogButtonFunc({
-	rightTitle,
-	rightClick,
-	leftTitle,
-	leftClick,
-	centerTitle,
-	centerClick
-}, dialog, getParam) {
+									  rightTitle,
+									  rightClick,
+									  leftTitle,
+									  leftClick,
+									  centerTitle,
+									  centerClick
+								  }, dialog, getParam) {
 	const DialogInterface = android.content.DialogInterface;
 	if (rightTitle || rightClick) {
 		rightClick = getDefaultValue(rightClick, "function", null);
@@ -2066,12 +2189,12 @@ function setAlertDialogButtonFunc({
 }
 
 function multiChoice({
-	title,
-	options,
-	checkedIndexs,
-	noAutoDismiss,
-	onChoice,
-}) {
+						 title,
+						 options,
+						 checkedIndexs,
+						 noAutoDismiss,
+						 onChoice,
+					 }) {
 	options = getStringArray(options, []);
 	checkedIndexs = getDefaultValue(checkedIndexs, "array", []);
 	let checkedItems = new Array(options.length).fill(false);
@@ -2204,11 +2327,11 @@ function getSeekAndLayout(max, pos, onChange) {
 }
 
 function seekCenter({
-	title,
-	max,
-	pos,
-	onChange,
-}) {
+						title,
+						max,
+						pos,
+						onChange,
+					}) {
 	max = parseInt(max), pos = parseInt(pos) || 0;
 	if (!max || max < pos || pos < 0) {
 		throw Error("max和pos必须为整数，且max>0,max>=pos>=0");
@@ -2325,7 +2448,7 @@ function scrollSmooth(idOrPos, isScroll, speedMsPerPx) {
 	if (!(typeof idOrPos == "string" || typeof idOrPos == "number")) return false;
 
 	let context = getActivityContext();
-	let recyclerView = findRecyclerView(context.findViewById(android.R.id.content));
+	let recyclerView = getRulesRecyclerView();
 	if (recyclerView == null) return false;
 	if (typeof idOrPos === "string") {
 		let list = recyclerView.getAdapter().getList();
@@ -2373,6 +2496,127 @@ function getCurrentPlayPosition() {
 		return Number(play.getCurrentPosition());
 	}
 	return null;
+}
+/**
+ * 显示 RhinoUI 生成的布局弹窗
+ * @param {Object} uiObj RhinoUI.render() 返回的对象 或 View 对象
+ * @param {Object} options 配置项
+ * {
+ * type: "center" | "bottom", // 弹窗类型，默认 center
+ * width: 300, // 宽度 (dp)，可选
+ * height: 400, // 高度 (dp)，可选
+ * maxHeight: 500, // 最大高度 (dp)，仅 bottom 类型常用
+ * borderRadius: 16, // 圆角 (dp)
+ * dismissOnTouchOutside: true, // 点击外部关闭
+ * anim: XPopup.anim.ScaleAlphaFromCenter, // 动画枚举
+ * onShow: function(){}, // 显示回调
+ * onDismiss: function(){} // 关闭回调
+ * }
+ */
+
+function showRhinoUI(uiObj, options) {
+	options = options || {};
+	let type = options.type || "center";
+
+	// 1. 获取 View (兼容 RhinoUI Wrapper 或 原生 View)
+	let targetView = null;
+	if (uiObj && uiObj.view && typeof uiObj.view.raw === "function") {
+		targetView = uiObj.view.raw();
+	} else if (uiObj instanceof android.view.View) {
+		targetView = uiObj;
+	} else {
+		throw new Error("showRhinoUI: 参数必须是 RhinoUI 对象或 Android View");
+	}
+
+	// 2. 构建 Builder
+	let builder = builderXPopup();
+	if (options.dismissOnTouchOutside === false) builder.dismissOnTouchOutside(false);
+	if (options.dismissOnBackPressed === false) builder.dismissOnBackPressed(false);
+	if (options.enableDrag === false) builder.enableDrag(false);
+	if (options.borderRadius !== void 0) builder.borderRadius(dpToPx(options.borderRadius));
+	if (options.anim) builder.popupAnimation(options.anim);
+
+	builder.setPopupCallback(newSimpleCallback({
+		onShow: options.onShow,
+		onDismiss: options.onDismiss,
+		beforeShow: options.beforeShow
+	}));
+
+	// 3. 定义 Adapter 实现
+	let CustomPopup;
+
+	if (type === "bottom") {
+		// =============================================
+		// BottomPopupView 专用策略：重写 addInnerContent
+		// =============================================
+		CustomPopup = JavaAdapter(com.lxj.xpopup.core.BottomPopupView, {
+			// 返回 0，因为我们覆盖了使用它的 addInnerContent 方法
+			getImplLayoutId: function() {
+				return 0;
+			},
+
+			// 【核心】覆盖此方法，直接将 View 加入容器，跳过 XML 解析
+			addInnerContent: function() {
+				// 1. 获取容器 SmartDragLayout
+				// 源码中它是在 initPopupContent 时赋值的，这里我们直接找子控件
+				// BottomPopupView 的根布局就是 SmartDragLayout
+				let container = this.getChildAt(0);
+
+				// 2. 准备 View
+				if (targetView.getParent() != null) {
+					targetView.getParent().removeView(targetView);
+				}
+
+				// 3. 设置 LayoutParams (底部弹窗宽度撑满)
+				let w = options.width ? dpToPx(options.width) : -1; // -1 = MATCH_PARENT
+				let h = options.height ? dpToPx(options.height) : -2; // -2 = WRAP_CONTENT
+				let lp = new android.widget.FrameLayout.LayoutParams(w, h);
+				// bottomContainer 内部默认就是底部对齐，其实不需要 Gravity，但加上保险
+				lp.gravity = 81; // Gravity.BOTTOM | CENTER_HORIZONTAL
+
+				// 4. 添加到 SmartDragLayout 容器中
+				container.addView(targetView, lp);
+			},
+
+			getMaxHeight: function() {
+				if (options.maxHeight) return dpToPx(options.maxHeight);
+				return this.super$getMaxHeight();
+			}
+		}, getActivityContext());
+
+	} else {
+		// =============================================
+		// CenterPopupView 策略：onCreate + removeAllViews
+		// =============================================
+		CustomPopup = JavaAdapter(com.lxj.xpopup.core.CenterPopupView, {
+			// 必须返回有效 ID 骗过检查
+			getImplLayoutId: function() {
+				return android.R.layout.simple_list_item_1;
+			},
+
+			onCreate: function() {
+				this.super$onCreate();
+				// 清空占位 View
+				this.removeAllViews();
+
+				if (targetView.getParent() != null) {
+					targetView.getParent().removeView(targetView);
+				}
+
+				let w = options.width ? dpToPx(options.width) : -2;
+				let h = options.height ? dpToPx(options.height) : -2;
+				let lp = new android.widget.FrameLayout.LayoutParams(w, h);
+				lp.gravity = 17; // Center
+
+				this.addView(targetView, lp);
+			}
+		}, getActivityContext());
+	}
+
+	// 4. 显示
+	let popup = builder.asCustom(CustomPopup);
+	showOnUI(popup);
+	return popup;
 }
 let popf = {
 	confirm,
@@ -2437,6 +2681,8 @@ $.exports = {
 	getCurrentPlayPosition,
 	scrollToPageTop,
 	scrollSmooth,
-	DragFlags:ItemTouchHelper
+	DragFlags: ItemTouchHelper,
+	showTooltip,
+	showRhinoUI
 };
 Object.assign($.exports, popf);
